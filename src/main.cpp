@@ -1,25 +1,63 @@
 #include <Arduino.h>
 #include "M5Atom.h"
-//#include "led1_boton.h"
-#include "leds_boton.h"
 
+uint8_t
+    DisBuff[2 + 5 * 5 * 3];  // Used to store RGB color values.  
+
+void setBuff(uint8_t Rdata, uint8_t Gdata,
+             uint8_t Bdata) {  // Set the colors of LED, and save the relevant
+                               // data to DisBuff[].  
+    DisBuff[0] = 0x05;
+    DisBuff[1] = 0x05;
+    for (int i = 0; i < 25; i++) {
+        DisBuff[2 + i * 3 + 0] = Rdata;
+        DisBuff[2 + i * 3 + 1] = Gdata;
+        DisBuff[2 + i * 3 + 2] = Bdata;
+    }
+}
 /* After Atom-Matrix is started or reset
 the program in the setUp () function will be run, and this part will only be run
-once.
-*/
-void setup() 
-{
-  //led1_boton_init();
-  leds_boton_init();
-
+once.*/
+void setup() {
+    M5.begin(true, false,
+             true);  // Init Atom-Matrix(Initialize serial port, LED).  
+    delay(10);  // delay10ms.  
+    setBuff(0xff, 0x00, 0x00);
+    M5.dis.displaybuff(
+        DisBuff);  // Display the DisBuff color on the LED.  
 }
+
+uint8_t FSM = 0;  // Store the number of key presses.  
 
 /* After the program in setup() runs, it runs the program in loop()
 The loop() function is an infinite loop in which the program runs repeatedly
 */
-void loop() 
-{
-  //led1_boton_loop();
-  leds_boton_loop();
+void loop() {
+    if (M5.Btn
+            .wasPressed()) {  // Check if the key is pressed. 
+        switch (FSM) {
+            case 0:
+                setBuff(0x40, 0x00, 0x00);
+                break;
+            case 1:
+                setBuff(0x00, 0x40, 0x00);
+                break;
+            case 2:
+                setBuff(0x00, 0x00, 0x40);
+                break;
+            case 3:
+                setBuff(0x20, 0x20, 0x20);
+                break;
+            default:
+                break;
+        }
+        M5.dis.displaybuff(DisBuff);
 
+        FSM++;
+        if (FSM >= 4) {
+            FSM = 0;
+        }
+    }
+    delay(50);
+    M5.update();  // Read the press state of the key.  
 }
