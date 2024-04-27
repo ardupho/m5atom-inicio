@@ -1,10 +1,10 @@
 #include <Arduino.h>
-#include <leds_boton.h>
+#include "boton_events.h"
 
 void setup() {
-    leds_boton_init(); 
+  boton_events_init();
 }
 
 void loop() {
-    leds_boton_loop();  
+  boton_events_loop();    
 }
